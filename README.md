@@ -70,6 +70,7 @@ pip install telethon
 git clone https://github.com/YOUR_USERNAME/telegram-forwarder-v20.git
 cd telegram-forwarder-v20
 ```
+本仓库内的所有文件下载在本地后点击：Start_Telegram_Forwarder_v20.bat
 
 #### 4. 运行程序
 **Windows:**
@@ -121,6 +122,7 @@ pyinstaller --onefile --windowed --name "TelegramForwarder" telegram_forwarder_v
 3. 点击 **"测试 API 连接"**
 4. 如果成功，点击 **"保存到配置"**
 
+如果不会操作，本软件已经默认配置了
 ---
 
 ## 📖 使用指南
@@ -311,7 +313,7 @@ python telegram_forwarder_v20.py
 ## 📧 联系方式
 
 - **Issues**: https://github.com/YOUR_USERNAME/telegram-forwarder-v20/issues
-- **Email**: your-email@example.com
+- **TG**: https://t.me/zzbzf1
 
 ---
 
