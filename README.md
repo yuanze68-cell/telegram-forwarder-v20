@@ -122,7 +122,7 @@ pyinstaller --onefile --windowed --name "TelegramForwarder" telegram_forwarder_v
 3. 点击 **"测试 API 连接"**
 4. 如果成功，点击 **"保存到配置"**
 
-如果不会操作，本软件已经默认配置了
+> ⚠️ 请务必使用自己的 API 凭证，不要使用他人泄露的 api_id/api_hash。
 ---
 
 ## 📖 使用指南
@@ -132,7 +132,7 @@ pyinstaller --onefile --windowed --name "TelegramForwarder" telegram_forwarder_v
 1. 切换到 **"转发"** 选项卡
 2. 填写：
    - **源频道**: 公开频道用户名（如 `@source_channel`）或消息链接（`https://t.me/xxx/123`）
-   - **目标频道**: 你的频道用户名（如 `@wumaav885`）
+   - **目标频道**: 你的频道用户名（如 `@your_channel`）
    - **起始消息 ID**: 从哪条消息开始转发（留空从最新开始）
    - **结束消息 ID**: 转发到哪条消息（留空转发所有）
 3. 点击 **"开始转发"**

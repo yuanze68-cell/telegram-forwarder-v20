@@ -1,0 +1,23 @@
+# 敏感文件：本地配置、会话、激活文件，严禁上传
+config.ini
+*.session
+*.session-journal
+.activation
+error_log.txt
+
+# 日志
+logs/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 构建产物
+build/
+dist/
+*.spec
+*.exe
+
+# 系统文件
+Thumbs.db
+Desktop.ini

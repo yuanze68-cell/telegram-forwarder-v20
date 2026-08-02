@@ -30,6 +30,174 @@ import logging
 from datetime import datetime, timedelta
 import traceback
 import re
+import hashlib
+import uuid
+import sys
+
+# ============================================================
+# 卡密验证系统
+# ============================================================
+# 打包/源码路径适配：exe 运行时以 exe 所在目录为基准，源码运行时以脚本目录为基准
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+ACTIVATION_FILE = os.path.join(BASE_DIR, '.activation')
+
+# 卡密密钥（用于生成和验证卡密）
+# 警告：这是前端验证，卡密可以通过反编译破解。商业用途建议用服务器验证。
+ACTIVATION_KEY = 'TelegramForwarder2026!@#'
+
+def generate_activation_code(raw_code):
+    """生成卡密（管理员用）
+    格式：XXXX-XXXX-XXXX-XXXX
+    前8位：时间戳哈希
+    后8位：校验码
+    """
+    import time
+    ts = int(time.time() / 86400)  # 按天变化
+    seed = f'{raw_code}{ts}{ACTIVATION_KEY}'
+    h = hashlib.sha256(seed.encode()).hexdigest()[:16].upper()
+    return f'{h[0:4]}-{h[4:8]}-{h[8:12]}-{h[12:16]}'
+
+def verify_activation_code(code):
+    """验证卡密（用户用）
+    接受任意一天内生成的卡密（容错±1天）
+    """
+    import time
+    code = code.strip().upper().replace('-', '')
+    if len(code) != 16:
+        return False
+    
+    for delta in [-1, 0, 1]:
+        ts = int(time.time() / 86400) + delta
+        for raw in ['ACTIVATE', 'activate', 'Activate', 'telegram', 'Telegram', 'TELEGRAM']:
+            seed = f'{raw}{ts}{ACTIVATION_KEY}'
+            h = hashlib.sha256(seed.encode()).hexdigest()[:16].upper()
+            if h == code:
+                return True
+    return False
+
+def is_activated():
+    """检查是否已激活"""
+    if os.path.exists(ACTIVATION_FILE):
+        try:
+            with open(ACTIVATION_FILE, 'r') as f:
+                saved = f.read().strip()
+                return saved == 'ACTIVATED'
+        except:
+            pass
+    return False
+
+def save_activation():
+    """保存激活状态"""
+    with open(ACTIVATION_FILE, 'w') as f:
+        f.write('ACTIVATED')
+
+class ActivationDialog(tk.Toplevel):
+    """激活对话框"""
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.result = False
+        self.title('软件激活')
+        self.geometry('420x320')
+        self.resizable(False, False)
+        self.configure(bg='#f0f0f0')
+        self.transient(parent)
+        self.grab_set()
+        
+        # 居中
+        self.update_idletasks()
+        x = (self.winfo_screenwidth() // 2) - (420 // 2)
+        y = (self.winfo_screenheight() // 2) - (320 // 2)
+        self.geometry(f'420x320+{x}+{y}')
+        
+        self._create_widgets()
+        
+        # 禁止关闭窗口（必须激活）
+        self.protocol('WM_DELETE_WINDOW', self._on_close)
+    
+    def _create_widgets(self):
+        # 标题
+        tk.Label(self, text='Telegram 转发工具', 
+                font=('Microsoft YaHei', 16, 'bold'),
+                bg='#f0f0f0', fg='#333').pack(pady=15)
+        
+        tk.Label(self, text='请输入激活卡密以继续使用',
+                font=('Microsoft YaHei', 10),
+                bg='#f0f0f0', fg='#666').pack()
+        
+        # 卡密输入框
+        frame = tk.Frame(self, bg='#f0f0f0')
+        frame.pack(pady=20)
+        
+        tk.Label(frame, text='卡密：', font=('Microsoft YaHei', 10),
+                bg='#f0f0f0').grid(row=0, column=0, padx=5, pady=10)
+        
+        self.entry_code = ttk.Entry(frame, width=25, font=('Consolas', 12))
+        self.entry_code.grid(row=0, column=1, padx=5, pady=10)
+        self.entry_code.focus()
+        
+        # 提示
+        tk.Label(self, text='卡密格式：XXXX-XXXX-XXXX-XXXX',
+                font=('Microsoft YaHei', 9),
+                bg='#f0f0f0', fg='#999').pack()
+        
+        # 激活按钮
+        btn_frame = tk.Frame(self, bg='#f0f0f0')
+        btn_frame.pack(pady=20)
+        
+        ttk.Button(btn_frame, text='激活', command=self._on_activate,
+                   width=15).pack(side='left', padx=10)
+        ttk.Button(btn_frame, text='退出', command=self._on_exit,
+                   width=15).pack(side='left', padx=10)
+        
+        # 联系方式
+        tk.Label(self, text='─' * 40, bg='#f0f0f0', fg='#ccc').pack(pady=10)
+        tk.Label(self, text='购买卡密 / 技术支持',
+                font=('Microsoft YaHei', 9, 'bold'),
+                bg='#f0f0f0', fg='#555').pack()
+        tk.Label(self, text='Telegram：@ZZBZF1',
+                font=('Microsoft YaHei', 10),
+                bg='#f0f0f0', fg='#0066cc', cursor='hand2').pack(pady=5)
+        
+        # 绑定回车
+        self.entry_code.bind('<Return>', lambda e: self._on_activate())
+    
+    def _on_activate(self):
+        code = self.entry_code.get().strip()
+        if not code:
+            messagebox.showwarning('提示', '请输入卡密', parent=self)
+            return
+        
+        if verify_activation_code(code):
+            save_activation()
+            self.result = True
+            messagebox.showinfo('成功', '激活成功！感谢使用。', parent=self)
+            self.destroy()
+        else:
+            messagebox.showerror('失败', '卡密无效，请检查后重试。', parent=self)
+            self.entry_code.select_range(0, 'end')
+    
+    def _on_exit(self):
+        self.result = False
+        self.destroy()
+    
+    def _on_close(self):
+        # 未激活不允许关闭，只能点退出
+        pass
+
+# 生成卡密的辅助函数（管理员用）
+# 在 Python 控制台执行：
+# from telegram_forwarder_v20 import generate_activation_code
+# print(generate_activation_code('ACTIVATE'))
+# 每天会生成不同的卡密，但验证时允许±1天容错
+
+# ============================================================
+# 主程序
+# ============================================================
 
 def parse_telegram_link(link):
     """解析 Telegram 消息链接，提取 channel 和 message_id
@@ -98,7 +266,7 @@ import requests
 # =============================================================================
 # 日志配置
 # =============================================================================
-log_dir = "logs"
+log_dir = os.path.join(BASE_DIR, "logs")
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
@@ -116,7 +284,7 @@ logging.basicConfig(
 # 配置文件管理
 # =============================================================================
 class ConfigManager:
-    CONFIG_FILE = "config.ini"
+    CONFIG_FILE = os.path.join(BASE_DIR, "config.ini")
     
     @staticmethod
     def load():
@@ -392,47 +560,6 @@ class AIRewriter:
         rewritten = result['message']['content'].strip()
         return True, rewritten, None
     
-    def _rewrite_openai_compatible(self, text):
-        """兼容 OpenAI 格式的平台（智谱GLM、百川、通义千问、OpenRouter）"""
-        url = self.PLATFORMS[self.platform]['url']
-        headers = {
-            'Authorization': f"Bearer {self.api_key}",
-            'Content-Type': 'application/json'
-        }
-        data = {
-            'model': self.model,
-            'messages': [
-                {'role': 'user', 'content': f'{self.prompt}\n\n原文案：\n{text}'}
-            ],
-            'temperature': 0.7
-        }
-        
-        resp = requests.post(url, headers=headers, json=data, timeout=30)
-        resp.raise_for_status()
-        result = resp.json()
-        rewritten = result['choices'][0]['message']['content'].strip()
-        return True, rewritten, None
-    
-    def _rewrite_ollama(self, text):
-        """Ollama 本地模型洗稿"""
-        url = self.PLATFORMS['Ollama']['url']
-        data = {
-            'model': self.model,
-            'messages': [
-                {'role': 'user', 'content': f'{self.prompt}\n\n原文案：\n{text}'}
-            ],
-            'stream': False,
-            'options': {
-                'temperature': 0.7
-            }
-        }
-        
-        resp = requests.post(url, json=data, timeout=60)  # 本地模型可能需要更长时间
-        resp.raise_for_status()
-        result = resp.json()
-        rewritten = result['message']['content'].strip()
-        return True, rewritten, None
-    
     def test_connection(self):
         """测试 API 连接"""
         try:
@@ -461,6 +588,7 @@ class TelegramForwarder:
         self._start_event_loop()
         self._create_ui()
         self._load_config()
+        self._load_config()
     
     def _start_event_loop(self):
         """启动后台事件循环"""
@@ -482,14 +610,32 @@ class TelegramForwarder:
     def _create_ui(self):
         """创建界面"""
         notebook = ttk.Notebook(self.root)
-        notebook.pack(fill='both', expand=True, padx=10, pady=10)
+        notebook.pack(fill='both', expand=True, padx=10, pady=(10, 5))
         
         # 创建各个选项卡
         self._setup_main_tab(notebook)
         self._setup_api_tab(notebook)
         self._setup_ai_tab(notebook)
         self._setup_tasks_tab(notebook)
+        self._setup_activation_tab(notebook)  # 新增激活选项卡
         self._setup_log_tab(notebook)
+        
+        # 底部联系方式栏
+        contact_frame = tk.Frame(self.root, bg='#f0f0f0', height=32)
+        contact_frame.pack(fill='x', side='bottom')
+        contact_frame.pack_propagate(False)
+        
+        tk.Label(contact_frame, text='技术支持 / 购买卡密：', 
+                 bg='#f0f0f0', fg='#666', font=('Microsoft YaHei', 9)).pack(side='left', padx=15)
+        
+        link = tk.Label(contact_frame, text='Telegram @ZZBZF1', 
+                         bg='#f0f0f0', fg='#0066cc', font=('Microsoft YaHei', 9, 'underline'),
+                         cursor='hand2')
+        link.pack(side='left')
+        link.bind('<Button-1>', lambda e: self._open_telegram())
+        
+        tk.Label(contact_frame, text='  |  v20.6', 
+                 bg='#f0f0f0', fg='#999', font=('Microsoft YaHei', 8)).pack(side='right', padx=15)
     
     def _setup_main_tab(self, notebook):
         """主界面"""
@@ -571,8 +717,7 @@ class TelegramForwarder:
         self.entry_replace_keywords.insert(0, '张三=李四')
         self.entry_replace_keywords.grid(row=0, column=1, padx=5, pady=2)
         
-        ttk.Label(replace_frame, text='格式: 原词1=新词1,原词2=新词2').grid(row=1, column=0, columnspan=2, sticky='w', padx=5, pady=2)
-        
+        ttk.Label(replace_frame, text='格式: 原词1=新词1,原词2=新词2').grid(row=1, column=0, columnspan=2, sticky='w', padx=5, pady=2)        
         # 按钮
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=12, column=0, columnspan=3, pady=20)
@@ -893,6 +1038,12 @@ class TelegramForwarder:
     async def _forward_async(self, source, target):
         """异步转发"""
         try:
+            # 检查并确保 client 已连接
+            if not self.client.is_connected():
+                self.log('[诊断] Client 未连接，正在重新连接...')
+                await self.client.connect()
+                self.log('[诊断] 重新连接成功')
+            
             source_entity = await self.client.get_entity(source)
             target_entity = await self.client.get_entity(target)
             
@@ -1214,47 +1365,49 @@ class TelegramForwarder:
                     album_rewrite_mode = 'simple'
                 
                 if album_rewrite_mode == 'simple':
-                    # 简单模式：转发相册后，追加洗稿文案（作为单独消息）
+                    # 简单模式：转发相册后，发送文案（作为单独消息）
                     msg_ids = [m.id for m in group]
+                    
+                    # 先替换关键词（在 AI 洗稿之前）
+                    caption_to_send = self._replace_keywords(album_caption) if album_caption else None
+                    
+                    # 转发相册（不转发文案）
                     await self.client.forward_messages(
                         target_entity,
                         msg_ids,
                         from_peer=source_entity,
-                        drop_author=hide_author
+                        drop_author=hide_author,
+                        drop_caption=True  # 不转发原文案
                     )
                     
                     # 如果启用了AI洗稿且有文案，发送洗稿后的文案
-                    if ai_rewriter and album_caption:
-                        self.log(f'[诊断] 简单模式: 开始 AI 洗稿 (起始ID={group[0].id}), 原文案长度={len(album_caption)}')
-                        success, rewritten, error = ai_rewriter.rewrite(album_caption)
+                    if ai_rewriter and caption_to_send:
+                        self.log(f'[诊断] 简单模式: 开始 AI 洗稿 (起始ID={group[0].id}), 文案长度={len(caption_to_send)}')
+                        success, rewritten, error = ai_rewriter.rewrite(caption_to_send)
                         if success:
-                            # 替换关键词（在 AI 洗稿之后）
-                            final_caption = self._replace_keywords(rewritten)
+                            # AI 洗稿后的文案（不需要再次替换关键词）
+                            final_caption = rewritten
                             await self.client.send_message(
                                 target_entity,
                                 final_caption
                             )
-                            self.log(f'相册洗稿+替换完成(起始ID={group[0].id}), 洗稿后长度={len(rewritten)}, 替换后长度={len(final_caption)}')
+                            self.log(f'相册洗稿完成(起始ID={group[0].id}), 洗稿后长度={len(rewritten)}')
                         else:
-                            # 洗稿失败，但还是尝试替换关键词
+                            # 洗稿失败，发送替换关键词后的文案
                             self.log(f'[诊断] 相册转发: AI 洗稿失败 (起始ID={group[0].id}): {error}')
-                            final_caption = self._replace_keywords(album_caption)
-                            if final_caption != album_caption:
-                                await self.client.send_message(
-                                    target_entity,
-                                    final_caption
-                                )
-                                self.log(f'相册替换关键词完成(起始ID={group[0].id})')
+                            await self.client.send_message(
+                                target_entity,
+                                caption_to_send
+                            )
+                            self.log(f'相册发送替换后文案(起始ID={group[0].id})')
                     else:
-                        # 没有 AI 洗稿，只做关键词替换
-                        if album_caption:
-                            final_caption = self._replace_keywords(album_caption)
-                            if final_caption != album_caption:
-                                await self.client.send_message(
-                                    target_entity,
-                                    final_caption
-                                )
-                                self.log(f'相册替换关键词完成(起始ID={group[0].id})')
+                        # 没有 AI 洗稿，发送替换关键词后的文案
+                        if caption_to_send:
+                            await self.client.send_message(
+                                target_entity,
+                                caption_to_send
+                            )
+                            self.log(f'相册发送替换后文案(起始ID={group[0].id})')
                 
                 # 【已注释】AI 洗稿 + 替换关键词
                 # if ai_rewriter and album_caption:
@@ -1375,7 +1528,11 @@ class TelegramForwarder:
         
         try:
             import re
-            rules = replace_rules.split(',')
+            # 修复：同时按逗号、换行符、分号分割规则
+            import re
+            # 先替换换行符为逗号，再按逗号分割
+            normalized_rules = replace_rules.replace('\n', ',').replace('\r', ',')
+            rules = [r.strip() for r in normalized_rules.split(',') if r.strip()]
             self.log(f'[诊断]   共 {len(rules)} 条规则')
             result = text
             for i, rule in enumerate(rules):
@@ -1400,6 +1557,58 @@ class TelegramForwarder:
             self.log(f'替换关键词失败: {e}')
             return text
     
+    def _open_telegram(self):
+        """打开作者 Telegram 联系方式"""
+        import webbrowser
+        webbrowser.open('https://t.me/ZZBZF1')
+    
+    def _setup_activation_tab(self, notebook):
+        """激活码输入（主界面版）"""
+        frame = ttk.Frame(notebook)
+        notebook.add(frame, text='激活')
+        
+        # 激活状态
+        self.activation_status_var = tk.StringVar(value='未激活' if not is_activated() else '已激活')
+        status_label = ttk.Label(frame, textvariable=self.activation_status_var, font=('Microsoft YaHei', 12, 'bold'))
+        status_label.grid(row=0, column=0, columnspan=2, pady=20)
+        
+        # 激活码输入
+        ttk.Label(frame, text='激活码:').grid(row=1, column=0, sticky='w', padx=10, pady=10)
+        self.entry_activation_code = ttk.Entry(frame, width=30)
+        self.entry_activation_code.grid(row=1, column=1, padx=10, pady=10)
+        self.entry_activation_code.bind('<Return>', lambda e: self._activate_from_tab())
+        
+        # 激活按钮
+        ttk.Button(frame, text='激活', command=self._activate_from_tab).grid(row=2, column=0, columnspan=2, pady=20)
+        
+        # 提示信息
+        ttk.Label(frame, text='激活码请联系作者获取：Telegram @ZZBZF1', foreground='gray').grid(row=3, column=0, columnspan=2, pady=10)
+    
+    def _activate_from_tab(self):
+        """从主界面选项卡激活"""
+        code = self.entry_activation_code.get().strip()
+        if not code:
+            messagebox.showerror('错误', '请输入激活码')
+            return
+        
+        if verify_activation_code(code):
+            import time
+            from datetime import datetime
+            activation_data = {
+                'code': code,
+                'activated_at': datetime.now().isoformat(),
+                'expire_at': time.time() + 365 * 24 * 3600  # 1年有效期
+            }
+            import json
+            with open(ACTIVATION_FILE, 'w', encoding='utf-8') as f:
+                json.dump(activation_data, f, ensure_ascii=False, indent=2)
+            
+            self.activation_status_var.set('已激活')
+            messagebox.showinfo('成功', '激活成功！')
+            self.log('程序已激活')
+        else:
+            messagebox.showerror('错误', '激活码无效或已过期')
+    
     def run(self):
         """运行主循环"""
         try:
@@ -1407,7 +1616,7 @@ class TelegramForwarder:
         except Exception as e:
             error_msg = traceback.format_exc()
             logging.error(f'程序异常退出:\n{error_msg}')
-            with open('error_log.txt', 'w', encoding='utf-8') as f:
+            with open(os.path.join(BASE_DIR, 'error_log.txt'), 'w', encoding='utf-8') as f:
                 f.write(error_msg)
             messagebox.showerror('致命错误', f'程序异常退出:\n\n{e}')
 
@@ -1415,12 +1624,13 @@ class TelegramForwarder:
 # 主程序入口
 # =============================================================================
 if __name__ == '__main__':
+    # 直接启动主程序（激活功能已移至主界面）
     try:
         app = TelegramForwarder()
         app.run()
     except Exception as e:
         error_msg = traceback.format_exc()
-        with open('error_log.txt', 'w', encoding='utf-8') as f:
+        with open(os.path.join(BASE_DIR, 'error_log.txt'), 'w', encoding='utf-8') as f:
             f.write(error_msg)
         try:
             messagebox.showerror('致命错误', f'程序异常退出:\n\n{e}')
