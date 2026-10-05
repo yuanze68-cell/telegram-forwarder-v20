@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- ===== SEO 关键区（标题/描述/关键词，搜索引擎主要吃这几行）===== -->
+<title>Telegram 转发工具 v20 下载 | TG 频道转发 + AI 洗稿 + 相册处理</title>
+<meta name="description" content="Telegram Forwarder v20 —— 免费开源的 Telegram 频道消息转发工具。支持 AI 洗稿(DeepSeek/OpenAI/Claude/Gemini 等 9 大平台)、智能相册转发、关键词过滤与替换、定时批量转发、多账号多目标。Windows 一键运行，下载即用。">
+<meta name="keywords" content="telegram转发,telegram 转发工具,tg转发机器人,telegram forwarder,telethon,频道转发,AI洗稿,telegram相册转发,tg消息转发,v20下载">
+<meta name="author" content="yuanze68-cell">
+<link rel="canonical" href="https://yuanze68-cell.github.io/telegram-forwarder-v20/">
+
+<!-- 社交平台分享卡片 -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Telegram 转发工具 v20 — TG 频道转发 + AI 洗稿">
+<meta property="og:description" content="免费开源：TG 频道消息转发，支持 AI 洗稿、智能相册、关键词过滤替换、定时批量、多账号。Windows 一键运行。">
+<meta property="og:url" content="https://yuanze68-cell.github.io/telegram-forwarder-v20/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Telegram 转发工具 v20 — TG 频道转发 + AI 洗稿">
+<meta name="twitter:description" content="免费开源：TG 频道消息转发，支持 AI 洗稿、智能相册、关键词过滤替换、定时批量、多账号。">
+
+<!-- 结构化数据：帮 Google/Bing 认出这是个软件项目 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Telegram Forwarder v20",
+  "alternateName": "Telegram 转发工具 v20",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Windows, macOS, Linux",
+  "programmingLanguage": "Python",
+  "license": "https://opensource.org/licenses/MIT",
+  "url": "https://yuanze68-cell.github.io/telegram-forwarder-v20/",
+  "codeRepository": "https://github.com/yuanze68-cell/telegram-forwarder-v20",
+  "description": "免费开源的 Telegram 频道消息转发工具，支持 AI 洗稿、智能相册处理、关键词过滤与替换、定时批量转发、多账号多目标。",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+
+<style>
+  :root{--fg:#1f2328;--muted:#59636e;--line:#d8dee4;--accent:#0969da;--bg:#fff;--soft:#f6f8fa;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:48px 20px 72px;}
+  h1{font-size:30px;line-height:1.35;margin:0 0 10px;}
+  h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+  p.lead{font-size:17px;color:var(--muted);margin:0 0 22px;}
+  .btns{margin:22px 0 6px;}
+  .btn{display:inline-block;padding:11px 20px;margin:0 10px 10px 0;border-radius:8px;
+       background:var(--accent);color:#fff;text-decoration:none;font-weight:600;}
+  .btn.ghost{background:var(--soft);color:var(--fg);border:1px solid var(--line);}
+  ul{padding-left:22px;margin:8px 0;}
+  li{margin:5px 0;}
+  code{background:var(--soft);padding:2px 6px;border-radius:5px;font-size:14px;}
+  pre{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:14px;overflow:auto;font-size:14px;}
+  table{border-collapse:collapse;width:100%;margin:10px 0;font-size:15px;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
+  th{background:var(--soft);}
+  .muted{color:var(--muted);font-size:14px;}
+  footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Telegram 转发工具 v20（Telegram Forwarder v20）</h1>
+  <p class="lead">免费开源的 <strong>Telegram 频道消息转发工具</strong>。一键把公开频道的消息转发到你的频道，支持
+  <strong>AI 洗稿</strong>、<strong>智能相册转发</strong>、关键词过滤与替换、定时批量、多账号多目标，Windows 下载即用。</p>
+
+  <div class="btns">
+    <a class="btn" href="https://github.com/yuanze68-cell/telegram-forwarder-v20/releases">下载最新版（Releases）</a>
+    <a class="btn ghost" href="https://github.com/yuanze68-cell/telegram-forwarder-v20">查看源码（GitHub）</a>
+  </div>
+  <p class="muted">Python 3.8+ ｜ MIT 许可 ｜ 无需装 Python 也能用（EXE 版）</p>
+
+  <h2>主要功能</h2>
+  <ul>
+    <li><strong>消息转发</strong>：按消息 ID 区间从源频道转发到目标频道，支持 <code>https://t.me/xxx/123</code> 链接解析</li>
+    <li><strong>AI 洗稿</strong>：接入 DeepSeek、OpenAI、Claude、Gemini、智谱 GLM、百川、通义千问、OpenRouter、Ollama 共 9 个平台，自动改写文案</li>
+    <li><strong>智能相册处理</strong>：按 <code>grouped_id</code> 分组转发相册，智能 / 简单 / 完整三种模式</li>
+    <li><strong>关键词过滤</strong>：包含关键词、删除关键词、替换关键词（<code>原词=新词</code>）</li>
+    <li><strong>批量与定时</strong>：批量任务、定时任务，长期自动运转</li>
+    <li><strong>多账号 / 多目标</strong>：一个程序管多个号、多个目标频道，克隆评论区</li>
+    <li><strong>隐藏发送者</strong>：转发不留 "Forwarded from"</li>
+  </ul>
+
+  <h2>怎么用</h2>
+  <ol>
+    <li>到 <a href="https://my.telegram.org">my.telegram.org</a> 申请自己的 <code>api_id</code> / <code>api_hash</code></li>
+    <li>下载并运行程序（EXE 双击即开，或 <code>python telegram_forwarder_v20.py</code>）</li>
+    <li>在「API 配置」里填入凭证并测试连接</li>
+    <li>在「登录」里输入手机号 + 验证码登录</li>
+    <li>在「转发」里填源频道、目标频道、消息 ID 区间，点「开始转发」</li>
+  </ol>
+
+  <h2>下载与安装</h2>
+  <pre># 方式一：直接下载 EXE（Releases 页）
+https://github.com/yuanze68-cell/telegram-forwarder-v20/releases
+
+# 方式二：源码运行
+git clone https://github.com/yuanze68-cell/telegram-forwarder-v20.git
+cd telegram-forwarder-v20
+pip install telethon
+python telegram_forwarder_v20.py</pre>
+
+  <h2>常见问题</h2>
+  <table>
+    <tr><th>问题</th><th>解决</th></tr>
+    <tr><td>登录没反应</td><td>检查 api_id / api_hash、网络（可能需要代理），看「日志」选项卡</td></tr>
+    <tr><td>AI 洗稿不工作</td><td>检查 API Key 与 API URL，点「测试连接」验证</td></tr>
+    <tr><td>相册转发重复</td><td>已知限制：相册无法直接改文案，当前方案是转发后再补一条洗稿文案</td></tr>
+    <tr><td>程序闪退</td><td>查看目录下 <code>error_log.txt</code>，或在命令行运行看报错</td></tr>
+  </table>
+
+  <footer>
+    <p>源码仓库：<a href="https://github.com/yuanze68-cell/telegram-forwarder-v20">yuanze68-cell/telegram-forwarder-v20</a>　｜　许可：MIT</p>
+    <p>关键词：telegram 转发工具 · TG 频道转发 · telegram forwarder · telethon · AI 洗稿 · 相册转发 · 消息转发工具</p>
+  </footer>
+
+</div>
+</body>
+</html>
