@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yuanze68-cell.github.io/telegram-forwarder-v20/sitemap.xml
